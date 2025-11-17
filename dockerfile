@@ -1,47 +1,26 @@
-# -----------------------------
-# 1. Base Image (PHP + Apache)
-# -----------------------------
+# Use official PHP-Apache image
 FROM php:8.2-apache
 
-# -----------------------------
-# 2. Install required packages
-# -----------------------------
-RUN apt-get update && apt-get install -y \
-    zip unzip git
-
-# -----------------------------
-# 3. Enable Apache modules
-# -----------------------------
+# Enable Apache mod_rewrite
 RUN a2enmod rewrite
 
-# -----------------------------
-# 4. Install PHP extensions (optional)
-# -----------------------------
-RUN docker-php-ext-install mysqli pdo pdo_mysql
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    zip unzip git libzip-dev \
+    && docker-php-ext-install zip pdo pdo_mysql mysqli
 
-# -----------------------------
-# 5. Install Composer globally
-# -----------------------------
+# Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# -----------------------------
-# 6. Copy project files
-# -----------------------------
+# Copy project files
 COPY . /var/www/html/
 
-# -----------------------------
-# 7. Set permissions
-# -----------------------------
+# Set correct permissions
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 755 /var/www/html
 
-# -----------------------------
-# 8. Expose Apache Port
-# -----------------------------
+# Expose port (Render detects this automatically)
 EXPOSE 80
 
-# -----------------------------
-# 9. Start Apache
-# -----------------------------
+# Start Apache
 CMD ["apache2-foreground"]
-  
